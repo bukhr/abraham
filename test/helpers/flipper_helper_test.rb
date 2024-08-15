@@ -3,35 +3,31 @@
 require "test_helper"
 
 class FlipperHelperTest < ActionView::TestCase
-  context "Cuando el tour requiera un FF activo" do
-    setup do
-      @show_tour_on = "enabled"
-    end
-
-    should "Mostrar tour con FF activo" do
-      feature_flag :foo, true
-      assert should_add_tour("foo", @show_tour_on)
-    end
-
-    should "Ocultar tour con FF inactivo" do
-      feature_flag :foo, false
-      assert_not should_add_tour("foo", @show_tour_on)
-    end
+  test "Add tour whenever all options nil" do
+  	assert should_add_tour(nil, nil)
   end
 
-  context "Cuando el tour requiera un FF inactivo" do
-    setup do
-      @show_tour_on = "disabled"
-    end
+  test "Add tour whenever Flipper is disabled " do
+  	# Flipper is not enabled, so tour should be added regardless of options
+  	assert should_add_tour("foo", "enabled")
+  	assert should_add_tour("foo", "disabled")
+  end
 
-    should "Mostrar tour con FF inactivo" do
-      feature_flag :foo, false
-      assert should_add_tour("foo", @show_tour_on)
-    end
+  test "Respect Flipper results if Flipper enabled" do
+    mockFlipper = Object.new
+    mockFlipper.stubs(:enabled?).returns(true)
+    
+    Kernel.const_set('Flipper', mockFlipper)
+    assert_equal Flipper, mockFlipper
 
-    should "Ocultar tour con FF activo" do
-      feature_flag :foo, true
-      assert_not should_add_tour("foo", @show_tour_on)
-    end
+    assert should_add_tour("foo", "enabled")
+    refute should_add_tour("foo", "disabled")
+
+    mockFlipper.stubs(:enabled?).returns(false)
+
+    refute should_add_tour("foo", "enabled")
+    assert should_add_tour("foo", "disabled")
+
+    Kernel.send(:remove_const, :Flipper)
   end
 end
