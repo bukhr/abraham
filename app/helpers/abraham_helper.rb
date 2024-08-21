@@ -15,6 +15,8 @@ module AbrahamHelper
     # Otherwise, default to the default locale
     tours ||= Rails.configuration.abraham.tours["#{controller_path}/#{action}/#{I18n.default_locale}"]
 
+    render_partial = Rails.configuration.abraham.render_partial || "application/abraham"
+
     if tours
       # Have any automatic tours been completed already?
       conditions = {
@@ -39,7 +41,7 @@ module AbrahamHelper
         flipper_activation = selected_tour["flipper_activation"]
 
         next unless should_add_tour(flipper_key, flipper_activation) && !tour_keys_completed.include?(key)
-        tour_html += render(partial: "application/abraham",
+        tour_html += render(partial: render_partial,
                             locals: { tour_name: key,
                                       tour_completed: tour_keys_completed.include?(key),
                                       trigger: selected_tour["trigger"],
